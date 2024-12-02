@@ -17,18 +17,18 @@ class SiameseSeResNeXtdropout(nn.Module):
         model_name = 'seresnext50_32x4d'
         base_model = timm.create_model(model_name, pretrained=True)
 
-        # 截取基模型的各部分
+      
         self.initial_layers = nn.Sequential(*list(base_model.children())[:3])
         self.blocks = list(base_model.children())[3:-2]
         self.avgpool = list(base_model.children())[-2]
 
-        # 应用Spatial Dropout到初始层和所有中间层
+      
         self.spatial_dropout_initial = nn.Dropout2d(p=spatial_dropout_p)
 
-        # 将blocks封装到包含Spatial Dropout的Sequential中
+        
         enhanced_blocks = []
         for block in self.blocks:
-            # 每个block后都加入Spatial Dropout
+            
             enhanced_blocks.append(nn.Sequential(
                 block,
                 nn.Dropout2d(p=spatial_dropout_p)
@@ -36,7 +36,7 @@ class SiameseSeResNeXtdropout(nn.Module):
 
         self.enhanced_blocks = nn.Sequential(*enhanced_blocks)
         self.fc_aux = nn.Linear(3, 128)
-        self.aux_dropout = nn.Dropout(p=dropout_p)  # 为年龄和性别特征添加dropout
+        self.aux_dropout = nn.Dropout(p=dropout_p)  
         self.dropout = nn.Dropout(p=dropout_p)
         num_features = base_model.fc.in_features
         self.fc = nn.Linear(num_features * 2+128, out)
@@ -46,7 +46,7 @@ class SiameseSeResNeXtdropout(nn.Module):
         left_eye = combined_image[:, :3, :, :]
         right_eye = combined_image[:, 3:6, :, :]
 
-        # 处理左右眼图像
+        
         left_features = self.spatial_dropout_initial(self.initial_layers(left_eye))
         right_features = self.spatial_dropout_initial(self.initial_layers(right_eye))
 
@@ -62,7 +62,7 @@ class SiameseSeResNeXtdropout(nn.Module):
         combined_features = torch.cat([left_features, right_features], dim=1)
 
 
-        # 对年龄和性别的多模态
+        
         aux_features = self.fc_aux(age_gender)
 
         combined_features = torch.cat([combined_features ,aux_features], dim=1)
@@ -100,8 +100,8 @@ class NewEyeDataset(Dataset):
         right_eye_path = os.path.join(self.root_dir, pair["right_eye"])
         label = pair["label"]
 
-        age = float(pair['age'])  # 确保年龄是浮点数
-        gender = int(pair['gender'])  # 确保性别是整数
+        age = float(pair['age'])  
+        gender = int(pair['gender'])  
         age_tensor = torch.tensor([age], dtype=torch.float32)
         gender_one_hot = torch.tensor([1, 0], dtype=torch.float32) if gender == 0 else torch.tensor([0, 1],
                                                                                                     dtype=torch.float32)

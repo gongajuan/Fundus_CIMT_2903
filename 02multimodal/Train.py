@@ -33,7 +33,7 @@ class FocalLoss(nn.Module):
         else:
             return F_loss
 # Training model function
-def train_model(model, train_loader, valid_loader, test_loader,criterion, optimizer, scheduler, modelName, num_epochs=25):
+def train_model(model, train_loader, valid_loader, criterion, optimizer, scheduler, modelName, num_epochs=25):
     best_acc = 0.0  # Initialize the best accuracy
     best_train_acc = 0.0
 
@@ -68,12 +68,10 @@ def train_model(model, train_loader, valid_loader, test_loader,criterion, optimi
 
         # Valid process
         valid_loss, valid_acc = validate_model(model, valid_loader, criterion, epoch, log_file=r'./valid_log.txt')
-        test_loss, test_acc = validate_model(model, test_loader, criterion, epoch,log_file=r'./Train_later_log.txt')
-        # Check if it is the best model
-
+        
         if valid_acc >= best_acc and train_acc>valid_acc:
             best_acc = valid_acc
-            filename = f"{modelName}model_state_dict_{best_acc:.4f}_{test_acc:.4f}.pth"
+            filename = f"{modelName}model_state_dict_{best_acc:.4f}.pth"
             torch.save(model.state_dict(), filename)  # Save the best model
 
         # Log training information
@@ -82,8 +80,7 @@ def train_model(model, train_loader, valid_loader, test_loader,criterion, optimi
             f'Valid Loss: {valid_loss:.4f}, Valid Acc: {valid_acc:.4f}')
 
         print(f'Epoch {epoch + 1}/{num_epochs}, Train Loss: {epoch_loss:.4f}, Accuracy: {train_acc:.4f}, '
-              f'Valid Loss: {valid_loss:.4f}, Valid Acc: {valid_acc:.4f}'
-              f'Test Loss: {test_loss:.4f}, Test Acc: {test_acc:.4f}')
+              f'Valid Loss: {valid_loss:.4f}, Valid Acc: {valid_acc:.4f}'             )
 
 
 # valid function
@@ -143,27 +140,6 @@ def main(PATH, weight_path, model, include_0_9mm=True, num_epochs=200, lr=0.0001
                               pin_memory=True,
                               prefetch_factor=2)
 
-    test_dataset = NewEyeDataset.from_json(json_file=json_file,
-                                            root_dir=PATH,
-                                            group_value=3,
-                                            include_0_9mm=include_0_9mm,
-                                            transform=ValidTransform)
-
-    test_loader = DataLoader(test_dataset,
-                              batch_size=batch_size,
-                              num_workers=4,
-                              pin_memory=True,
-                              prefetch_factor=2)
-
-
-
-
-
-
-
-
-
-
     model = model
 
     if torch.cuda.device_count() > 1:
@@ -184,14 +160,14 @@ def main(PATH, weight_path, model, include_0_9mm=True, num_epochs=200, lr=0.0001
         print('1111')
         model.load_state_dict(torch.load(weight_path))
 
-    train_model(model, train_loader, valid_loader,test_loader, criterion, optimizer, scheduler, num_epochs=num_epochs,
+    train_model(model, train_loader, valid_loader, criterion, optimizer, scheduler, num_epochs=num_epochs,
                 modelName=modleName)
 
 
 if __name__ == '__main__':
     # Global parameters
     PATH = r'D:\data\1'  # training data path
-    weight_path = r"C:\Users\Administrator\Desktop\02SiameseNeuralNetworkModel\03SiameseNeuralNetworkModel-多模态\SiameseSeResNeXtdropoutmodel_state_dict_0.8000_0.8100.pth"
+    weight_path = r""
     model = SiameseSeResNeXtdropout(dropout_p=0.1, spatial_dropout_p=0, out=2).to(device)
     modleName = model.__class__.__name__
 
