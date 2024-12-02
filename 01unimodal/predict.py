@@ -9,7 +9,6 @@ from itertools import cycle
 from pathlib import Path
 import torch.nn as nn
 from torch.utils.data import DataLoader
-
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # Evaluation function
@@ -20,7 +19,6 @@ def evaluate_model(model, dataloader, criterion):
     all_probs = []
     running_loss = 0.0
     corrects = 0
-
     with torch.no_grad():
         for inputs, labels in dataloader:
             inputs = inputs.to(device)
@@ -41,8 +39,7 @@ def evaluate_model(model, dataloader, criterion):
 
     avg_loss = running_loss / len(dataloader.dataset)
     accuracy = corrects.double() / len(dataloader.dataset)
-    all_probs = np.concatenate(all_probs, axis=0)
-    
+    all_probs = np.concatenate(all_probs, axis=0)    
     return avg_loss, accuracy, np.array(all_labels), np.array(all_preds), all_probs
 
 # Confusion Matrix Plotting
@@ -56,7 +53,6 @@ def plot_confusion_matrix(labels, preds, save_dir):
     plt.colorbar()
     plt.xticks([0, 1], ['Normal', 'Thickened'])
     plt.yticks([0, 1], ['Normal', 'Thickened'])
-
     threshold = cm_normalized.max() / 2.
     for i, j in itertools.product(range(cm_normalized.shape[0]), range(cm_normalized.shape[1])):
         plt.text(j, i, f'{cm_normalized[i, j]:.2f}%', ha="center", va="center", 
@@ -139,14 +135,11 @@ if __name__ == '__main__':
     # Path to save the results
     save_path = r''
     # Path to the model weights
-    weight_path = r''
-    
+    weight_path = r''    
     # Initialize the model with specified dropout probabilities and output classes
-    model = SiameseSeResNeXtdropout(dropout_p=0.05, spatial_dropout_p=0.05, out=2).to(device)
-    
+    model = SiameseSeResNeXtdropout(dropout_p=0.05, spatial_dropout_p=0.05, out=2).to(device)    
     # Set the batch size for processing
-    batch_size = 60
-    
+    batch_size = 60    
     # Flag to include images with specific size (0-9mm), currently set to False
     include_0_9mm = False
     
